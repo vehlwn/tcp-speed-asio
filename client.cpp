@@ -33,6 +33,12 @@ void main_coroutine(boost::asio::io_context &io_context,
     boost::system::error_code ec;
     const std::size_t tcp_read_len =
         tcp_stream.async_receive(boost::asio::buffer(buf), yield[ec]);
+    if (ec) {
+      if (ec == boost::asio::error::eof)
+        break;
+      else
+        throw boost::system::system_error{ec};
+    }
   }
   const auto t2 = std::chrono::system_clock::now();
   const double secs = std::chrono::duration<double>(t2 - t1).count();
