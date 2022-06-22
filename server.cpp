@@ -15,8 +15,7 @@
 #include <boost/range/algorithm/fill.hpp>
 
 namespace {
-void handle_client(boost::asio::io_context &io_context,
-                   boost::asio::ip::tcp::socket tcp_stream,
+void handle_client(boost::asio::ip::tcp::socket tcp_stream,
                    boost::asio::yield_context yield) try {
   constexpr std::size_t mtu = 1400;
   const std::string send_buf = [] {
@@ -56,11 +55,11 @@ void main_coroutine(boost::asio::io_context &io_context,
     tcp_listener.async_accept(tcp_stream, yield);
     std::clog << "Incoming connection from " << tcp_stream.remote_endpoint()
               << std::endl;
-    boost::asio::spawn(
-        io_context, [&io_context, tcp_stream = std::move(tcp_stream)](
-                        boost::asio::yield_context yield) mutable {
-          handle_client(io_context, std::move(tcp_stream), yield);
-        });
+    boost::asio::spawn(io_context,
+                       [tcp_stream = std::move(tcp_stream)](
+                           boost::asio::yield_context yield) mutable {
+                         handle_client(std::move(tcp_stream), yield);
+                       });
   }
 } catch (const std::exception &ex) {
   std::cerr << "Error in main_coroutine(): " << ex.what() << std::endl;

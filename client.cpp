@@ -31,8 +31,7 @@ void main_coroutine(boost::asio::io_context &io_context,
        recv_len += mtu) {
     buf.resize(mtu);
     boost::system::error_code ec;
-    const std::size_t tcp_read_len =
-        tcp_stream.async_receive(boost::asio::buffer(buf), yield[ec]);
+    tcp_stream.async_receive(boost::asio::buffer(buf), yield[ec]);
     if (ec) {
       if (ec == boost::asio::error::eof)
         break;
