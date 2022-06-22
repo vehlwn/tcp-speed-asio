@@ -35,8 +35,11 @@ void main_coroutine(boost::asio::io_context &io_context,
         tcp_stream.async_receive(boost::asio::buffer(buf), yield[ec]);
   }
   const auto t2 = std::chrono::system_clock::now();
-  std::clog << "Elapsed: " << std::chrono::duration<double>(t2 - t1).count()
-            << " s" << std::endl;
+  const double secs = std::chrono::duration<double>(t2 - t1).count();
+  const double kbs = total_recv_length / 1024.0 / secs;
+  const double mbs = kbs / 1024.0;
+  std::clog << "Elapsed: " << secs << " s; " << kbs << " KB/s; " << mbs
+            << " MB/s" << std::endl;
 } catch (const std::exception &ex) {
   std::cerr << "Error in main_coroutine(): " << ex.what() << std::endl;
 }
