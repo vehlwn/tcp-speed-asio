@@ -12,18 +12,23 @@
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/range/algorithm/fill.hpp>
 
 namespace {
 void handle_client(boost::asio::io_context &io_context,
                    boost::asio::ip::tcp::socket tcp_stream,
                    boost::asio::yield_context yield) try {
-  constexpr std::size_t tcp_recv_size = 4096;
-  std::string buf;
+  constexpr std::size_t mtu = 1400;
+  const std::string send_buf = [] {
+    std::string ret;
+    ret.resize(mtu);
+    boost::range::fill(ret, 'a');
+    return ret;
+  }();
   while (true) {
-    buf.resize(tcp_recv_size);
     boost::system::error_code ec;
-    const std::size_t tcp_read_len =
-        tcp_stream.async_receive(boost::asio::buffer(buf), yield[ec]);
+    boost::asio::async_write(tcp_stream, boost::asio::buffer(send_buf),
+                             boost::asio::transfer_all(), yield[ec]);
     if (ec) {
       if (ec == boost::asio::error::eof)
         break;
